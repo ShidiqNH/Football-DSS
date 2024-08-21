@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+* {
+    margin: 0 auto;
+    padding: 0;
+}
+
+html{
+    scroll-behavior: smooth;
+}
+
+body{
+    font-family: "Montserrat", sans-serif;
+    transition: background-color 0.5s ease;
+}
+
+
+/* nav */
+nav {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 10vh;
+    width: 100%;
+    background-color: black;
+    z-index: 100;
+}
+
+.nav-links{
+    gap: 2rem;
+    list-style: none;
+    font-size: 1.5rem;
+    font-weight: 400;
+}
+
+nav, .nav-links{
+    display: flex;
+}
+
+.logo{
+    font-size: 1.5rem;
+    font-size: 2rem;
+    color: whitesmoke
+}
+
+.logo img {
+  width: 20rem;
+  height: auto;
+}
+
+a{
+    text-decoration: none;
+    text-decoration-color: var(--DarkC);
+    color: whitesmoke;
+}
+
+nav a:hover{
+  color: gray;
+  text-decoration: underline;
+  text-underline-offset: 1rem;
+}
+
+
+/* hero */
+
+.hero {
+  height: 100vh;
+  width: 60%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+}
+
+.hero .title-big {
+  font-size: 5rem;
+  font-weight: 400;
+  text-align: left; /* Align title text to the left */
+  width: 100%; /* Ensure the title takes the full width for alignment */
+  margin-bottom: 1rem; /* Adjust margin if needed */
+}
+
+.hero .description, .hero .description-bold {
+  font-size: 1.5rem;
+  font-weight: 300;
+  margin-bottom: 2rem;
+  text-align: justify; /* Justify text alignment for descriptions */
+}
+
+.hero .description-bold {
+  font-weight: bold;
+}
+

@@ -80,6 +80,9 @@ def get_db_connection():
     conn = mysql.connector.connect(**db_config)
     return conn
 
+@app.route('/')
+def index():
+    return render_template("base.html")
 
 @app.route('/api/get_all_players', methods=['GET'])
 def get_all_players():
