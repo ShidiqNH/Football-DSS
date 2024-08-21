@@ -1,6 +1,7 @@
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 import mysql.connector
 import pandas as pd
+import joblib
 
 app = Flask(__name__)
 
@@ -10,7 +11,29 @@ db_config = {
     'host': 'localhost',
     'database': 'football_bi'  # Replace with your database name
 }
+
 csv_data = pd.read_csv('utils/fifa_data_updated.csv')
+df = pd.read_csv('utils/fifa_data_updated.csv')
+
+position_features = {
+    'GK': ['GKDiving', 'GKHandling', 'GKKicking', 'GKPositioning', 'GKReflexes'],
+    'LW': ['Crossing', 'Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'FKAccuracy', 'LongPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'RW': ['Crossing', 'Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'FKAccuracy', 'LongPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'CF': ['Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'ST': ['Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'LF': ['Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'RF': ['Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'CAM': ['ShortPassing', 'Dribbling', 'Finishing', 'BallControl', 'Vision', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'LM': ['Crossing', 'Dribbling', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'CM': ['ShortPassing', 'Dribbling', 'BallControl', 'Vision', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'RM': ['Crossing', 'Dribbling', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'CDM': ['StandingTackle', 'Strength', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'LWB': ['StandingTackle', 'Strength', 'Crossing', 'Dribbling', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'RWB': ['StandingTackle', 'Strength', 'Crossing', 'Dribbling', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'LB': ['StandingTackle', 'Strength', 'Crossing', 'Dribbling', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'RB': ['StandingTackle', 'Strength', 'Crossing', 'Dribbling', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
+    'CB': ['StandingTackle', 'Strength', 'HeadingAccuracy', 'Interceptions', 'Positioning', 'Jumping'],
+}
 
 
 def calculate_outfield_attributes(player_row):
@@ -101,17 +124,39 @@ def get_random_players():
         return jsonify({'error': str(err)}), 500
     
 
-@app.route('/api/player/<name>', methods=['GET'])
-def get_player_by_name(name):
+@app.route('/api/player', methods=['GET'])
+def get_players():
+    # Get query parameters
+    name = request.args.get('name')
+    position = request.args.get('position')
+    club = request.args.get('club')
+
     try:
         # Connect to the MySQL database
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor(dictionary=True)
 
-        # Query to fetch player data using partial matching
-        query = "SELECT * FROM player WHERE Name LIKE %s"
-        like_pattern = f"%{name}%"  # This will match any name containing the input string
-        cursor.execute(query, (like_pattern,))
+        # Build the query based on provided parameters
+        query = "SELECT * FROM player WHERE 1=1"
+        params = []
+
+        if name:
+            query += " AND Name LIKE %s"
+            params.append(f"%{name}%")
+
+        if position:
+            query += " AND Position = %s"
+            params.append(position)
+
+        if club:
+            query += " AND Club = %s"
+            params.append(club)
+
+        # Check if there are no parameters provided
+        if not params:
+            return jsonify({'error': 'At least one parameter is required'}), 400
+
+        cursor.execute(query, tuple(params))
         players = cursor.fetchall()
 
         # Close the cursor and connection
@@ -122,10 +167,11 @@ def get_player_by_name(name):
         if players:
             return jsonify(players)
         else:
-            return jsonify({'error': 'Player not found'}), 404
+            return jsonify({'error': 'No players found matching the criteria'}), 404
 
     except mysql.connector.Error as err:
         return jsonify({'error': str(err)}), 500
+
 
 @app.route('/player/<int:sofifa_id>')
 def player(sofifa_id):
@@ -164,8 +210,42 @@ def player(sofifa_id):
 
 
 @app.route('/scout/player/<int:sofifa_id>')
-def scouting_decision():
-    pass
+def scouting_decision(sofifa_id):
+    # Find the player in the DataFrame
+    player = df[df['Sofifa_ID'] == sofifa_id]
+    
+    if player.empty:
+        return jsonify({'error': 'Player not found'}), 404
+    
+    # Get the player's position
+    position = player.iloc[0]['Position']
+    
+    if position not in position_features:
+        return jsonify({'error': f'Model for position {position} is not available'}), 400
+    
+    # Load the pre-trained model for the player's position
+    model_filename = f'models/{position}_fit_model_balanced.pkl'
+    try:
+        model = joblib.load(model_filename)
+    except FileNotFoundError:
+        return jsonify({'error': f'Model for position {position} not found'}), 404
+    
+    # Prepare the player's data for prediction
+    X_test = player[position_features[position]].select_dtypes(include=['float64', 'int64'])
+    
+    # Predict using the loaded model
+    y_pred = model.predict(X_test)
+    
+    # Determine if the player is fit or not
+    is_fit = bool(y_pred[0])
+    
+    return jsonify({
+        'sofifa_id': sofifa_id,
+        'name': player.iloc[0]['Name'],
+        'position': position,
+        'fit': is_fit,
+    })
+
 
 
 if __name__ == '__main__':
