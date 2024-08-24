@@ -2,6 +2,10 @@ from flask import Flask, jsonify, render_template, request
 import mysql.connector
 import pandas as pd
 import joblib
+from sklearn.tree import DecisionTreeClassifier, export_text
+import numpy as np
+import requests
+
 
 app = Flask(__name__)
 
@@ -19,17 +23,10 @@ position_features = {
     'GK': ['GKDiving', 'GKHandling', 'GKKicking', 'GKPositioning', 'GKReflexes'],
     'LW': ['Crossing', 'Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'FKAccuracy', 'LongPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
     'RW': ['Crossing', 'Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'FKAccuracy', 'LongPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'CF': ['Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
     'ST': ['Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'LF': ['Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'RF': ['Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
     'CAM': ['ShortPassing', 'Dribbling', 'Finishing', 'BallControl', 'Vision', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'LM': ['Crossing', 'Dribbling', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
     'CM': ['ShortPassing', 'Dribbling', 'BallControl', 'Vision', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'RM': ['Crossing', 'Dribbling', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
     'CDM': ['StandingTackle', 'Strength', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'LWB': ['StandingTackle', 'Strength', 'Crossing', 'Dribbling', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'RWB': ['StandingTackle', 'Strength', 'Crossing', 'Dribbling', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
     'LB': ['StandingTackle', 'Strength', 'Crossing', 'Dribbling', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
     'RB': ['StandingTackle', 'Strength', 'Crossing', 'Dribbling', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
     'CB': ['StandingTackle', 'Strength', 'HeadingAccuracy', 'Interceptions', 'Positioning', 'Jumping'],
@@ -319,44 +316,121 @@ def player(sofifa_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/scout', methods=['GET', 'POST'])
+def scouting():
+    positions = request.args.get('positions')
+    club = request.args.get('club', '')
+    page = int(request.args.get('page', 1))
 
-@app.route('/scout/player/<int:sofifa_id>')
-def scouting_decision(sofifa_id):
-    # Find the player in the DataFrame
-    player = df[df['Sofifa_ID'] == sofifa_id]
+    players = []
+    total_pages = 1
+    current_page = 1
+
+    if request.method == 'POST':
+        positions = request.form.get('positions')
+        club = request.form.get('club', '').strip()
+
+        if positions and club:
+            response = requests.get('http://127.0.0.1:5000/api/scouting', params={'positions': positions, 'club': club, 'page': page})
+            if response.status_code == 200:
+                data = response.json()
+                players = data.get('players', [])
+                total_pages = data.get('total_pages', 1)
+                current_page = data.get('current_page', 1)
+
+    return render_template('scouting.html', players=players, positions=positions, club=club, total_pages=total_pages, current_page=current_page)
+
+@app.route('/api/scouting', methods=['GET'])
+def find_fit_players():
+    position = request.args.get('positions')
+    club = request.args.get('club', '').strip()
+    page = int(request.args.get('page', 1))  # Get the page number, default to 1
+    items_per_page = 50
+
+    if not position or not club:
+        return jsonify({'error': 'Both position and club are required'}), 400
+
+    position_features_list = position_features.get(position, [])
+    if len(position_features_list) < 1:
+        return jsonify({'error': 'Not enough features to train the model for this position'}), 400
+
+    players = df[df['Position'] == position]
+
+    if players.empty:
+        return jsonify({'error': f'No players found for position {position}'}), 404
+
+    players = players.copy()
+    in_club = players[players['Club'].str.lower() == club.lower()]
+    outside_club = players[players['Club'].str.lower() != club.lower()]
+
+    if not in_club.empty:
+        outside_club_sample = outside_club.sample(n=len(in_club), random_state=42)
+        balanced_players = pd.concat([in_club, outside_club_sample])
+    else:
+        return jsonify({'error': f'No players found for club {club}'}), 404
+
+    balanced_players = balanced_players.sample(frac=1, random_state=42).reset_index(drop=True)
+    balanced_players['FitForClub'] = balanced_players['Club'].apply(
+        lambda x: 1 if isinstance(x, str) and x.lower() == club.lower() else 0
+    )
+
+    X = balanced_players[position_features_list].select_dtypes(include=['float64', 'int64'])
+    y = balanced_players['FitForClub']
+
+    model = DecisionTreeClassifier(criterion='entropy', min_samples_split=3)
+    model.fit(X, y)
+
+    X_all = df[df['Position'] == position][position_features_list].select_dtypes(include=['float64', 'int64'])
+    X_all = X_all[position_features_list]
     
-    if player.empty:
-        return jsonify({'error': 'Player not found'}), 404
-    
-    # Get the player's position
-    position = player.iloc[0]['Position']
-    
-    if position not in position_features:
-        return jsonify({'error': f'Model for position {position} is not available'}), 400
-    
-    # Load the pre-trained model for the player's position
-    model_filename = f'models/{position}_fit_model_balanced.pkl'
-    try:
-        model = joblib.load(model_filename)
-    except FileNotFoundError:
-        return jsonify({'error': f'Model for position {position} not found'}), 404
-    
-    # Prepare the player's data for prediction
-    X_test = player[position_features[position]].select_dtypes(include=['float64', 'int64'])
-    
-    # Predict using the loaded model
-    y_pred = model.predict(X_test)
-    
-    # Determine if the player is fit or not
-    is_fit = bool(y_pred[0])
-    
+    df_copy = df.copy()
+    df_copy.loc[df_copy['Position'] == position, 'FitPrediction'] = model.predict(X_all)
+
+    fit_players = df_copy[(df_copy['FitPrediction'] == 1) & (df_copy['Position'] == position)]
+
+    if fit_players.empty:
+        return jsonify({'message': 'No players found that fit the criteria'}), 200
+
+    def explain_fit(player_row):
+        feature_values = player_row[position_features_list].to_dict()
+        explanation = []
+
+        for node_id in range(model.tree_.node_count):
+            if model.tree_.feature[node_id] != -2:  # Not a leaf node
+                feature_name = position_features_list[model.tree_.feature[node_id]]
+                threshold = model.tree_.threshold[node_id]
+                feature_value = feature_values[feature_name]
+                
+                explanation.append(f"Feature '{feature_name}' with value {feature_value:.2f} "
+                                f"{'>' if feature_value > threshold else '<='} threshold {threshold:.2f}")
+
+        class_label = model.apply([player_row[position_features_list].values])[0]
+        final_classification = 'fit' if bool(model.tree_.value[class_label][0].argmax() == 1) else 'not fit'
+        
+        return f"Player Details : {', '.join(explanation)}. Player classified as: {final_classification}"
+
+    fit_players_info = []
+    for _, row in fit_players.iterrows():
+        player_info = {
+            'Sofifa_ID': row['Sofifa_ID'],
+            'Name': row['Name'],
+            'Age': row['Age'],
+            'Club': row['Club'],
+            'Photo': row['Photo'],  # Add photo URL
+            'Explanation': explain_fit(row)
+        }
+        fit_players_info.append(player_info)
+
+    # Implement pagination
+    start = (page - 1) * items_per_page
+    end = start + items_per_page
+    paginated_players = fit_players_info[start:end]
+
     return jsonify({
-        'sofifa_id': sofifa_id,
-        'name': player.iloc[0]['Name'],
-        'position': position,
-        'fit': is_fit,
+        'players': paginated_players,
+        'total_pages': (len(fit_players_info) + items_per_page - 1) // items_per_page,
+        'current_page': page
     })
-
 
 
 if __name__ == '__main__':

@@ -360,3 +360,63 @@ form input[type="submit"]:hover {
   margin: 0 1rem;
   font-weight: bold;
 }
+
+
+/* Scouting */
+
+.scout-hero{
+  height: 20vh;
+  width: 60%;
+  padding-top: 20vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+  margin-bottom: 5vh;
+
+}
+
+.scout-hero .scout-description{
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
+  text-align: justify; /* Justify text alignment for descriptions */
+}
+
+.scout-hero .big-title{
+  font-size: 3rem;
+  font-weight: 700;
+  text-align: left; 
+  width: 100%; 
+  margin-bottom: 1rem; 
+}
+
+.scouting-info{
+  width: 90%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+}
+
+.scouting-info h1{
+  margin-bottom: 1rem;
+}
+
+.id3-info select {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+}
+
+.id3-info input[type="text"]{
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+}
