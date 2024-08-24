@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scout Master</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/media.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    
+   <!-- Nav -->
+    <nav id="desktop-nav" class="hidden">
+        <div class="logo"><a href=""><img src="/static/img/Soccersz.png" alt="Scout Master"></a></div>
+        <ul class="nav-links">
+            <li><a href="">Home</a></li>
+            <li><a href="/players">Player</a></li>
+            <li><a href="/scout">Scouting</a></li>
+        </ul>
+    </nav>    
+
+    <div class="container-player">
+        <div class="player-left">
+            <td><img src="{{ player.CSVData.Photo }}" alt="{{ player.CSVData.Name }}" class="player-photo" onerror="this.onerror=null;this.src='/static/img/empty-profile.png';"></td>
+            <h1>{{ player.CSVData.Name }}</h1>
+            <p class="player-nationality">{{ player.CSVData.Nationality }}</p>
+            <p class="personal-data">{{ player.CSVData.Age }} y.o. / {{ player.CSVData.Height }} / {{ player.CSVData.Weight }}</p>
+            <p class="player-position">Position : {{ player.CSVData.Position }}</p>
+            
+            <div class="radar-chart">
+                <canvas id="radarChart"></canvas>
+            </div>
+
+        </div>
+
+        <div class="player-right">
+            <div class="detail-top">
+                <h1>Player Statistics</h1>
+                <p class="player-overall"> Overall rating : <span class="player-text-bg-scale">{{ player.CSVData.Overall }}</span></p>
+                <p class="player-potential"> Potential : <span class="player-text-bg-scale">{{ player.CSVData.Potential }}</span></p>
+                <p class="value">Value : <span class="player-text-bg-gray">{{ player.CSVData.Value }}</span></p>
+                <p class="wage">Wage : <span class="player-text-bg-gray">{{ player.CSVData.Wage }}</span></p>
+            </div>
+            
+            <div class="player-attacking">
+                <p class="crossing"><span class="player-text-bg-scale">{{ player.CSVData.Crossing }}</span> Crossing</p>
+            </div>
+
+            <div class="player-skill">
+
+            </div>
+
+            <div class="player-movement">
+
+            </div>
+
+            <div class="player-power">
+
+            </div>
+
+            <div class="player-mentality">
+
+            </div>
+
+            <div class="player-defending">
+
+            </div>
+
+            <div class="player-goalkeeping">
+
+            </div>
+
+            <div class="player-playstyles">
+
+            </div>
+
+            
+
+        </div>
+    </div>
+    <script>
+        // Determine if the player is a goalkeeper
+        const isGoalkeeper = '{{ player.CSVData.Position }}'.includes('GK');
+
+        // Set labels and data based on player type
+        const radarLabels = isGoalkeeper 
+            ? ['Diving', 'Handling', 'Kicking', 'Positioning', 'Reflexes', 'Reactions']
+            : ['DEF', 'DRI', 'PAC', 'PAS', 'PHY', 'SHO'];
+
+        const radarDataValues = isGoalkeeper 
+            ? [
+                {{ player.RadarData.GKDiving }},
+                {{ player.RadarData.GKHandling }},
+                {{ player.RadarData.GKKicking }},
+                {{ player.RadarData.GKPositioning }},
+                {{ player.RadarData.GKReflexes }},
+                {{ player.RadarData.Reactions }}
+              ]
+            : [
+                {{ player.RadarData.DEF }},
+                {{ player.RadarData.DRI }},
+                {{ player.RadarData.PAC }},
+                {{ player.RadarData.PAS }},
+                {{ player.RadarData.PHY }},
+                {{ player.RadarData.SHO }}
+              ];
+
+        // Radar chart data
+        const radarData = {
+            labels: radarLabels,
+            datasets: [{
+                label: '{{ player.CSVData.Name }}\'s Attributes',
+                data: radarDataValues,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        // Radar chart configuration
+        const config = {
+            type: 'radar',
+            data: radarData,
+            options: {
+                scale: {
+                    ticks: { beginAtZero: true }
+                }
+            }
+        };
+
+        // Render the radar chart
+        new Chart(
+            document.getElementById('radarChart'),
+            config
+        );
+
+    
+        document.querySelectorAll('.player-text-bg-scale').forEach(function(element) {
+            const value = parseInt(element.textContent, 10); // Get the value inside the span
+            const green = Math.min(255, Math.floor((value / 100) * 255)); // Calculate green color intensity
+            const red = 255 - green; // Calculate red color intensity
+            element.style.backgroundColor = `rgb(${red}, ${green}, 0)`; // Set the background color
+        });
+        
+    </script>
+    <script src="/static/js/scripts.js"></script>
+</body>
+</html>

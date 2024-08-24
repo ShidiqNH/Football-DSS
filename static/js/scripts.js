@@ -76,3 +76,4 @@ document.addEventListener('click', function(e) {
         suggestionsContainer.style.display = 'none';
     }
 });
+

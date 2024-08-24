@@ -436,3 +436,65 @@ form input[type="submit"]:hover {
 .scouting-result .value{
   color: green;
 }
+
+
+/* Singular player */
+
+.container-player {
+  width: 85%;
+  display: flex;
+  padding-top: 10vh;
+  padding-bottom: 10vh;
+}
+
+.player-left {
+  margin-top: 10vh;
+  width: 20%;
+  display: flex;
+  flex-direction: column; 
+  align-items: center; /* Centers items horizontally */
+  justify-content: center; /* Centers items vertically */
+  text-align: center; 
+  position: relative;
+}
+
+.player-right {
+  width: 80%;
+  background-color: #007bff;
+}
+
+.player-left img {
+  display: block; 
+  margin: 0 auto; 
+  width: 70%;
+  height: auto;
+  border-radius: 80px;
+  background-color: #f5f5f5;
+}
+
+
+.player-left p{
+  margin-top: 1rem;
+  font-size: 1.5rem;
+}
+
+.player-text-bg-gray{
+  background-color: #f5f5f5;
+  padding: 5px;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.player-text-bg-scale {
+  padding: 5px;
+  border-radius: 8px;
+  color: white; 
+  font-weight: 800;
+}
+
+.radar-chart{
+  margin-top: 1rem;
+  width: 100%;
+  height: auto;
+}
+

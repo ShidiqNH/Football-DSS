@@ -142,6 +142,9 @@ def players():
     except mysql.connector.Error as err:
         return str(err), 500
 
+@app.route('/player')
+def player_detail():
+    return render_template('player.html')
     
 @app.route('/api/suggestions')
 def suggestions():
@@ -206,32 +209,6 @@ def get_all_players():
 
     except mysql.connector.Error as err:
         return str(err), 500
-    
-    
-@app.route('/api/players/random', methods=['GET'])
-def get_random_players():
-    try:
-        # Connect to the MySQL database
-        conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor(dictionary=True)
-
-        # Query to fetch 10 random players from the database
-        query = "SELECT * FROM player ORDER BY RAND() LIMIT 10"
-        cursor.execute(query)
-        players = cursor.fetchall()
-
-        # Close the cursor and connection
-        cursor.close()
-        conn.close()
-
-        # Check if any players were found
-        if players:
-            return jsonify(players)
-        else:
-            return jsonify({'error': 'No players found'}), 404
-
-    except mysql.connector.Error as err:
-        return jsonify({'error': str(err)}), 500
     
 
 @app.route('/api/player', methods=['GET'])
@@ -311,7 +288,8 @@ def player(sofifa_id):
             'CSVData': player_dict
         }
 
-        return render_template('player_profile.html', player=player_info)
+        # return jsonify(player_info)
+        return render_template('player.html', player=player_info)
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -439,9 +417,6 @@ def find_fit_players():
     )[:50]
 
     return jsonify({'players': top_fit_players})
-
-
-
 
 
 if __name__ == '__main__':
