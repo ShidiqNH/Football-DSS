@@ -82,7 +82,116 @@ def get_db_connection():
 
 @app.route('/')
 def index():
-    return render_template("base.html")
+    return render_template("index.html")
+
+@app.route('/players')
+def players():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Fetch the current page number from query parameters, default is 1
+        page = int(request.args.get('page', 1))
+        per_page = 20
+        offset = (page - 1) * per_page
+
+        # Get filter values from query parameters
+        position_filter = request.args.get('positions')
+        club_filter = request.args.get('club')
+
+        # Build the base query
+        query = "SELECT Sofifa_ID, Photo, Name, Age, Overall, Club, Position FROM player"
+        filters = []
+        params = []
+
+        # Add filters if present
+        if position_filter:
+            filters.append("Position = %s")
+            params.append(position_filter)
+        if club_filter:
+            filters.append("Club LIKE %s")
+            params.append(f"%{club_filter}%")
+
+        # Add the WHERE clause if there are filters
+        if filters:
+            query += " WHERE " + " AND ".join(filters)
+
+        # Add pagination
+        query += " LIMIT %s OFFSET %s"
+        params.extend([per_page, offset])
+
+        cursor.execute(query, params)
+        players = cursor.fetchall()
+
+        # Get total players count with the same filters
+        count_query = "SELECT COUNT(*) FROM player"
+        if filters:
+            count_query += " WHERE " + " AND ".join(filters)
+
+        cursor.execute(count_query, params[:-2])  # Exclude pagination params for count query
+        total_players = cursor.fetchone()['COUNT(*)']
+        total_pages = (total_players + per_page - 1) // per_page
+
+        cursor.close()
+        conn.close()
+
+        return render_template(
+            "players.html", 
+            players=players, 
+            current_page=page, 
+            total_pages=total_pages
+        )
+
+    except mysql.connector.Error as err:
+        return str(err), 500
+
+    
+@app.route('/api/suggestions')
+def suggestions():
+    query = request.args.get('query', '')
+    suggestion_type = request.args.get('type', '')
+
+    if not query or not suggestion_type:
+        return jsonify([])
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        if suggestion_type == 'club':
+            cursor.execute("SELECT DISTINCT Club FROM player WHERE Club LIKE %s ", (f"%{query}%",))
+        else:
+            return jsonify([])
+
+        suggestions = [row[0] for row in cursor.fetchall()]
+
+        cursor.close()
+        conn.close()
+
+        return jsonify(suggestions)
+
+    except mysql.connector.Error as err:
+        return jsonify([]), 500
+    
+@app.route('/api/player_suggestions')
+def player_suggestions():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        query = request.args.get('name', '')
+        
+        # Fetch players whose name contains the query
+        cursor.execute("SELECT Sofifa_ID, Photo, Name FROM player WHERE Name LIKE %s LIMIT 10", (f'%{query}%',))
+        players = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+
+        return jsonify(players)
+
+    except mysql.connector.Error as err:
+        return jsonify({'error': str(err)}), 500
+
 
 @app.route('/api/get_all_players', methods=['GET'])
 def get_all_players():
@@ -100,6 +209,7 @@ def get_all_players():
 
     except mysql.connector.Error as err:
         return str(err), 500
+    
     
 @app.route('/api/players/random', methods=['GET'])
 def get_random_players():
@@ -204,12 +314,10 @@ def player(sofifa_id):
             'CSVData': player_dict
         }
 
-        # Return the data as JSON
-        return jsonify(player_info)
+        return render_template('player_profile.html', player=player_info)
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 
 @app.route('/scout/player/<int:sofifa_id>')

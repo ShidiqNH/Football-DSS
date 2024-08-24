@@ -53,7 +53,6 @@ nav, .nav-links{
 
 a{
     text-decoration: none;
-    text-decoration-color: var(--DarkC);
     color: whitesmoke;
 }
 
@@ -95,3 +94,269 @@ nav a:hover{
   font-weight: bold;
 }
 
+
+/* Players page */
+/* left */
+.container {
+  width: 80%;
+  display: flex;
+  padding-top: 10vh;
+}
+
+.container .left-section {
+  width: 20%;
+  display: flex;
+  flex-direction: column; 
+  padding-top: 10vh;
+  text-align: center; 
+  position: relative;
+}
+
+.container .left-section h1 {
+  margin: 0 auto; /* Center the heading */
+  margin-bottom: 2rem;
+}
+
+.form-filter {
+  width: 90%; /* Ensure form takes the full width */
+}
+
+.form-filter select {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+}
+
+.suggestions {
+  width: 90%;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  max-height: 200px;
+  overflow-y: auto;
+  position: absolute;
+  z-index: 1000;
+  box-sizing: border-box;
+}
+.suggestions ul li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.suggestions ul li:hover {
+  background-color: #f0f0f0;
+}
+
+.suggestions ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.suggestions div {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.suggestions div:hover {
+  background-color: #f0f0f0;
+}
+
+.form-filter input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+}
+
+form input[type="submit"] {
+  background-color: black;
+  color: white;
+  padding: 0.7rem;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+form input[type="submit"]:hover {
+  background-color: gray;
+}
+
+
+/* Right */
+
+.container .right-section {
+  width: 80%;
+  display: flex;
+  flex-direction: column; 
+  text-align: center; 
+  position: relative;
+  /* background-color: saddlebrown; */
+}
+
+.right-section .top-section {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 2rem;
+  box-sizing: border-box;
+}
+
+.right-section .top-section input[type="text"] {
+  width: 50rem;
+  padding: 8px;
+  box-sizing: border-box; 
+  margin: 2rem 0;
+  font-size: 1.5rem;
+}
+
+.suggestions {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 50rem;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.suggestions ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.suggestions li {
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.suggestions li a {
+  text-decoration: none;
+  color: black;
+  display: flex;
+  align-items: center;
+}
+
+.suggestions li a:hover {
+  background-color: #f5f5f5;
+}
+
+.player-photo {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+
+.right-section .bot-section {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.right-section img{
+  width: 100px;
+  height: 100px;
+}
+
+.table {
+  width: 100%; /* Make the table take up the full width of its container */
+  border-collapse: collapse; /* Remove the spacing between table cells */
+  margin: 1rem 0; /* Add margin for spacing around the table */
+  font-size: 1.25rem; /* Set font size for the table */
+
+}
+
+.table th, .table td {
+  padding: 0.75rem; /* Padding inside each cell */
+  text-align: center; /* Align text to the left */
+  border-bottom: 1px solid #ddd; /* Add border only at the bottom of cells */
+}
+
+.table th {
+  font-weight: bold; /* Make header text bold */
+}
+
+.table td img.player-photo {
+  height: auto; /* Maintain aspect ratio */
+  border-radius: 8px; /* Make the photo circular */
+  background-color: #f5f5f5;
+}
+
+.table tr:hover {
+  background-color: #f5f5f5; /* Light background on row hover */
+}
+
+.table td a {
+  color: #007bff; /* Link color */
+  text-decoration: none; /* Remove underline from links */
+}
+
+.table td a:hover {
+  text-decoration: underline; /* Underline links on hover */
+  text-underline-offset: 0.5rem;
+}
+
+.table th:nth-child(1),
+.table td:nth-child(1) {
+  width: 15%; /* Width for the first column (Photo) */
+}
+
+.table th:nth-child(2),
+.table td:nth-child(2) {
+  width: 20%; /* Width for the second column (Name) */
+  text-align: left;
+}
+
+.table th:nth-child(3),
+.table td:nth-child(3) {
+  width: 10%; /* Width for the third column (Age) */
+}
+
+.table th:nth-child(4),
+.table td:nth-child(4) {
+  width: 10%; /* Width for the fourth column (Overall) */
+}
+
+.table th:nth-child(5),
+.table td:nth-child(5) {
+  width: 35%; /* Width for the fifth column (Club) */
+}
+
+.table th:nth-child(6),
+.table td:nth-child(6) {
+  width: 10%; /* Width for the sixth column (Position) */
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+  font-size: 1.25rem;
+  margin-bottom: 3rem;
+}
+
+.pagination a {
+  padding: 0.5rem 1rem;
+  margin: 1rem;
+  background-color: black;
+  color: white;
+  text-decoration: none;
+  border-radius: 0.25rem;
+}
+
+.pagination a:hover {
+  background-color: gray;
+}
+
+.pagination span {
+  margin: 0 1rem;
+  font-weight: bold;
+}

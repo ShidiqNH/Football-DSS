@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scout Master</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="icon" href="/static/img/favicon.png" type="image/x-icon">
+</head>
+<body>
+    
+   <!-- Nav -->
+    <nav id="desktop-nav">
+        <div class="logo"><a href=""><img src="/static/img/Soccersz.png" alt="Scout Master"></a></div>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/players">Player</a></li>
+            <li><a href="/scout">Scouting</a></li>
+        </ul>
+    </nav>    
+    
+    <div class="container">
+
+        <div class="left-section">
+            <h1>Filter</h1>
+            <div class="form-filter">
+                <form action="/players" method="GET">
+                    <select name="positions" id="positions">
+                        <option value="" disabled {% if not request.args.get('positions') %}selected{% endif %}>Position</option>
+                        <option value="CAM" {% if request.args.get('positions') == 'CAM' %}selected{% endif %}>CAM</option>
+                        <option value="CB" {% if request.args.get('positions') == 'CB' %}selected{% endif %}>CB</option>
+                        <option value="CDM" {% if request.args.get('positions') == 'CDM' %}selected{% endif %}>CDM</option>
+                        <option value="CM" {% if request.args.get('positions') == 'CM' %}selected{% endif %}>CM</option>
+                        <option value="GK" {% if request.args.get('positions') == 'GK' %}selected{% endif %}>GK</option>
+                        <option value="LB" {% if request.args.get('positions') == 'LB' %}selected{% endif %}>LB</option>
+                        <option value="LW" {% if request.args.get('positions') == 'LW' %}selected{% endif %}>LW</option>
+                        <option value="RB" {% if request.args.get('positions') == 'RB' %}selected{% endif %}>RB</option>
+                        <option value="RW" {% if request.args.get('positions') == 'RW' %}selected{% endif %}>RW</option>
+                        <option value="ST" {% if request.args.get('positions') == 'ST' %}selected{% endif %}>ST</option>
+                    </select>
+                    <input type="text" name="club" id="club" placeholder="Enter Club" autocomplete="off" value="{{ request.args.get('club', '') }}">
+                    <div id="club-suggestions" class="suggestions" style="display: none;">
+                        <ul id="club-suggestion-list"></ul>
+                    </div>
+                    <input type="submit" value="Submit">
+                </form>
+            </div>
+        </div>
+
+        <div class="right-section">
+
+            <div class="top-section">
+                <input type="text" name="name" id="name" placeholder="Search Player..." autocomplete="off">
+                <div id="player-suggestions" class="suggestions" style="display: none;">
+                    <ul id="player-suggestion-list"></ul>
+                </div>
+            </div>
+
+            <div class="bot-section">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col"></th> <!-- Empty for photo column -->
+                            <th scope="col">Name</th>
+                            <th scope="col">Age</th>
+                            <th scope="col">Overall</th>
+                            <th scope="col">Club</th>
+                            <th scope="col">Position</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for player in players %}
+                        <tr>
+                            <td><img src="{{ player.Photo }}" alt="Player Photo" class="player-photo" onerror="this.onerror=null;this.src='/static/img/empty-profile.png';"></td>
+                            <td><a href="/player/{{ player.Sofifa_ID }}">{{ player.Name }}</a></td>
+                            <td>{{ player.Age }}</td>
+                            <td>{{ player.Overall }}</td>
+                            <td>{{ player.Club }}</td>
+                            <td>{{ player.Position }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <div class="pagination">
+                    {% if current_page > 1 %}
+                    <a href="?page={{ current_page - 1 }}{% if request.args.get('positions') %}&positions={{ request.args.get('positions') }}{% endif %}{% if request.args.get('club') %}&club={{ request.args.get('club') }}{% endif %}" class="prev">Previous</a>
+                    {% endif %}
+                
+                    <span>Page {{ current_page }} of {{ total_pages }}</span>
+                
+                    {% if current_page < total_pages %}
+                    <a href="?page={{ current_page + 1 }}{% if request.args.get('positions') %}&positions={{ request.args.get('positions') }}{% endif %}{% if request.args.get('club') %}&club={{ request.args.get('club') }}{% endif %}" class="next">Next</a>
+                    {% endif %}
+                </div>
+
+            </div>
+            
+        </div>
+
+    </div>
+
+    <script src="/static/js/scripts.js"></script>
+</body>
+</html>
