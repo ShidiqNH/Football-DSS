@@ -320,32 +320,26 @@ def player(sofifa_id):
 def scouting():
     positions = request.args.get('positions')
     club = request.args.get('club', '')
-    page = int(request.args.get('page', 1))
 
     players = []
-    total_pages = 1
-    current_page = 1
 
     if request.method == 'POST':
         positions = request.form.get('positions')
         club = request.form.get('club', '').strip()
 
         if positions and club:
-            response = requests.get('http://127.0.0.1:5000/api/scouting', params={'positions': positions, 'club': club, 'page': page})
+            response = requests.get('http://127.0.0.1:5000/api/scouting', params={'positions': positions, 'club': club})
             if response.status_code == 200:
                 data = response.json()
                 players = data.get('players', [])
-                total_pages = data.get('total_pages', 1)
-                current_page = data.get('current_page', 1)
 
-    return render_template('scouting.html', players=players, positions=positions, club=club, total_pages=total_pages, current_page=current_page)
+    return render_template('scouting.html', players=players, positions=positions, club=club)
+
 
 @app.route('/api/scouting', methods=['GET'])
 def find_fit_players():
     position = request.args.get('positions')
     club = request.args.get('club', '').strip()
-    page = int(request.args.get('page', 1))  # Get the page number, default to 1
-    items_per_page = 50
 
     if not position or not club:
         return jsonify({'error': 'Both position and club are required'}), 400
@@ -401,13 +395,22 @@ def find_fit_players():
                 threshold = model.tree_.threshold[node_id]
                 feature_value = feature_values[feature_name]
                 
-                explanation.append(f"Feature '{feature_name}' with value {feature_value:.2f} "
-                                f"{'>' if feature_value > threshold else '<='} threshold {threshold:.2f}")
+                comparison = '>' if feature_value > threshold else '<='
+                
+                explanation.append({
+                    'Feature': feature_name,
+                    'Value': f"{feature_value:.2f}",
+                    'Threshold': f"{threshold:.2f}",
+                    'Comparison': comparison
+                })
 
         class_label = model.apply([player_row[position_features_list].values])[0]
         final_classification = 'fit' if bool(model.tree_.value[class_label][0].argmax() == 1) else 'not fit'
         
-        return f"Player Details : {', '.join(explanation)}. Player classified as: {final_classification}"
+        return {
+            'Features': explanation,
+            'Classification': final_classification
+        }
 
     fit_players_info = []
     for _, row in fit_players.iterrows():
@@ -417,20 +420,28 @@ def find_fit_players():
             'Age': row['Age'],
             'Club': row['Club'],
             'Photo': row['Photo'],  # Add photo URL
+            'Position': row['Position'],
             'Explanation': explain_fit(row)
         }
         fit_players_info.append(player_info)
 
-    # Implement pagination
-    start = (page - 1) * items_per_page
-    end = start + items_per_page
-    paginated_players = fit_players_info[start:end]
+    # Get the first feature for sorting
+    first_feature = position_features_list[0]
 
-    return jsonify({
-        'players': paginated_players,
-        'total_pages': (len(fit_players_info) + items_per_page - 1) // items_per_page,
-        'current_page': page
-    })
+    # Sort players by the value of the first feature in the explanation
+    top_fit_players = sorted(
+        fit_players_info,
+        key=lambda x: float(next(
+            (f['Value'] for f in x['Explanation']['Features'] if f['Feature'] == first_feature),
+            0  # Default value if the feature is not found
+        )),
+        reverse=True  # Sort in descending order for the highest value first
+    )[:50]
+
+    return jsonify({'players': top_fit_players})
+
+
+
 
 
 if __name__ == '__main__':

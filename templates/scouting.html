@@ -58,11 +58,11 @@
 
     {% if players %}
     <div class="scouting-result">
-        <h2>Results</h2>
-        <table>
+        <h2>Top 50 Results</h2>
+        <table class="table">
             <thead>
                 <tr>
-                    <th>Photo</th>
+                    <th></th>
                     <th>Name</th>
                     <th>Age</th>
                     <th>Club</th>
@@ -76,33 +76,25 @@
                     <td><a href="/player/{{ player.Sofifa_ID }}">{{ player.Name }}</a></td>
                     <td>{{ player.Age }}</td>
                     <td>{{ player.Club }}</td>
-                    <td>{{ player.Explanation }}</td>
+                    <td>
+                        {% for feature in player.Explanation.Features %}
+                            {% if feature.Comparison == '>' %}
+                                Player <span class="feature">{{ feature.Feature }}</span> value is <span class="value">{{ feature.Value }}</span> which is greater than the threshold {{ feature.Threshold }}.<br>
+                            {% elif feature.Comparison == '<=' %}
+                                Player <span class="feature">{{ feature.Feature }}</span> value is <span class="value">{{ feature.Value }}</span> which is less than or equal to the threshold {{ feature.Threshold }}.<br>
+                            {% elif feature.Comparison == '<' %}
+                                Player <span class="feature">{{ feature.Feature }}</span> value is <span class="value">{{ feature.Value }}</span> which is less than the threshold {{ feature.Threshold }}.<br>
+                            {% elif feature.Comparison == '>=' %}
+                                Player <span class="feature">{{ feature.Feature }}</span> value is <span class="value">{{ feature.Value }}</span> which is greater than or equal to the threshold {{ feature.Threshold }}.<br>
+                            {% endif %}
+                        {% endfor %}
+                        Because of the player's skill, {{ player.Name }} is fit for the {{ player.Position }} position for the club.
+                    </td>                    
+                    
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-    
-        <!-- Pagination controls -->
-        <nav aria-label="Page navigation">
-            <ul class="pagination">
-                <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
-                    <a class="page-link" href="/scout?positions={{ positions }}&club={{ club }}&page={{ current_page - 1 }}" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-                {% for i in range(1, total_pages + 1) %}
-                <li class="page-item {% if i == current_page %}active{% endif %}">
-                    <a class="page-link" href="/scout?positions={{ positions }}&club={{ club }}&page={{ i }}">{{ i }}</a>
-                </li>
-                {% endfor %}
-                <li class="page-item {% if current_page == total_pages %}disabled{% endif %}">
-                    <a class="page-link" href="/scout?positions={{ positions }}&club={{ club }}&page={{ current_page + 1 }}" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </div>
     {% endif %} 
     
 

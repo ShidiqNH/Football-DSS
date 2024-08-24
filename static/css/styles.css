@@ -248,9 +248,6 @@ form input[type="submit"]:hover {
 }
 
 .player-photo {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
   margin-right: 0.5rem;
 }
 
@@ -270,7 +267,6 @@ form input[type="submit"]:hover {
   border-collapse: collapse; /* Remove the spacing between table cells */
   margin: 1rem 0; /* Add margin for spacing around the table */
   font-size: 1.25rem; /* Set font size for the table */
-
 }
 
 .table th, .table td {
@@ -419,4 +415,24 @@ form input[type="submit"]:hover {
   box-sizing: border-box;
   margin-bottom: 2rem;
   font-size: 1.5rem;
+}
+
+
+.scouting-result{
+  width: 90%;
+  margin-top: 2rem;
+}
+
+.scouting-result img{
+  width: 100px;
+  height: 100px;
+
+}
+
+.scouting-result .feature{
+  color:#007bff ;
+}
+
+.scouting-result .value{
+  color: green;
 }
