@@ -458,11 +458,6 @@ form input[type="submit"]:hover {
   position: relative;
 }
 
-.player-right {
-  width: 80%;
-  background-color: #007bff;
-}
-
 .player-left img {
   display: block; 
   margin: 0 auto; 
@@ -497,4 +492,56 @@ form input[type="submit"]:hover {
   width: 100%;
   height: auto;
 }
+
+
+.player-right {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 2rem;
+}
+
+.detail-top{
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.5rem;
+}
+
+.player-right .detail-middle,
+.player-right .detail-bottom {
+  display: flex;
+  width: 100%;
+  justify-content: space-between; /* Distribute space between each section */
+}
+
+.player-right .detail-middle > div,
+.player-right .detail-bottom > div {
+  flex: 1; /* Make each section take equal space */
+  margin-right: 1rem; /* Add some space between sections */
+}
+
+.player-right .detail-middle > div:last-child,
+.player-right .detail-bottom > div:last-child {
+  margin-right: 0; /* Remove margin from the last item */
+}
+
+.player-right h2 {
+  margin-top: 2rem;
+}
+
+.player-right p {
+  margin-top: 1rem;
+}
+
+.player-right .player-text-bg-scale {
+  display: inline-block;
+  padding: 5px;
+  border-radius: 8px;
+  color: white;
+  background-color: #007bff;
+  font-weight: bold;
+}
+
 
