@@ -16,21 +16,22 @@ db_config = {
     'database': 'football_bi'  # Replace with your database name
 }
 
-csv_data = pd.read_csv('utils/fifa_data_updated.csv')
-df = pd.read_csv('utils/fifa_data_updated.csv')
+csv_data = pd.read_csv('utils/player-data-full.csv')
+df = pd.read_csv('utils/player-data-full.csv')
 
 position_features = {
-    'GK': ['GKDiving', 'GKHandling', 'GKKicking', 'GKPositioning', 'GKReflexes'],
-    'LW': ['Crossing', 'Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'FKAccuracy', 'LongPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'RW': ['Crossing', 'Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'FKAccuracy', 'LongPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'ST': ['Finishing', 'HeadingAccuracy', 'ShortPassing', 'Volleys', 'Dribbling', 'Curve', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'CAM': ['ShortPassing', 'Dribbling', 'Finishing', 'BallControl', 'Vision', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'CM': ['ShortPassing', 'Dribbling', 'BallControl', 'Vision', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'CDM': ['StandingTackle', 'Strength', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'LB': ['StandingTackle', 'Strength', 'Crossing', 'Dribbling', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'RB': ['StandingTackle', 'Strength', 'Crossing', 'Dribbling', 'ShortPassing', 'BallControl', 'Acceleration', 'SprintSpeed', 'Agility'],
-    'CB': ['StandingTackle', 'Strength', 'HeadingAccuracy', 'Interceptions', 'Positioning', 'Jumping'],
+    'GK': ['gk_diving', 'gk_handling', 'gk_kicking', 'gk_positioning', 'gk_reflexes'],
+    'LW': ['crossing', 'finishing', 'heading_accuracy', 'short_passing', 'volleys', 'dribbling', 'curve', 'fk_accuracy', 'long_passing', 'ball_control', 'acceleration', 'sprint_speed', 'agility'],
+    'RW': ['crossing', 'finishing', 'heading_accuracy', 'short_passing', 'volleys', 'dribbling', 'curve', 'fk_accuracy', 'long_passing', 'ball_control', 'acceleration', 'sprint_speed', 'agility'],
+    'ST': ['finishing', 'heading_accuracy', 'short_passing', 'volleys', 'dribbling', 'curve', 'ball_control', 'acceleration', 'sprint_speed', 'agility'],
+    'CAM': ['short_passing', 'dribbling', 'finishing', 'ball_control', 'vision', 'acceleration', 'sprint_speed', 'agility'],
+    'CM': ['short_passing', 'dribbling', 'ball_control', 'vision', 'acceleration', 'sprint_speed', 'agility'],
+    'CDM': ['standing_tackle', 'strength', 'short_passing', 'ball_control', 'acceleration', 'sprint_speed', 'agility'],
+    'LB': ['standing_tackle', 'strength', 'crossing', 'dribbling', 'short_passing', 'ball_control', 'acceleration', 'sprint_speed', 'agility'],
+    'RB': ['standing_tackle', 'strength', 'crossing', 'dribbling', 'short_passing', 'ball_control', 'acceleration', 'sprint_speed', 'agility'],
+    'CB': ['standing_tackle', 'strength', 'heading_accuracy', 'interceptions', 'positioning', 'jumping'],
 }
+
 
 
 def calculate_outfield_attributes(player_row):
