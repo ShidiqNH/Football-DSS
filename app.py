@@ -11,9 +11,9 @@ app = Flask(__name__)
 
 db_config = {
     'user': 'root',
-    'password': '',  # Default password (usually empty for Laragon)
+    'password': '',  
     'host': 'localhost',
-    'database': 'football_bi'  # Replace with your database name
+    'database': 'football_bi' 
 }
 
 csv_data = pd.read_csv('utils/fifa_data_updated.csv')
@@ -125,7 +125,7 @@ def players():
         if filters:
             count_query += " WHERE " + " AND ".join(filters)
 
-        cursor.execute(count_query, params[:-2])  # Exclude pagination params for count query
+        cursor.execute(count_query, params[:-2])
         total_players = cursor.fetchone()['COUNT(*)']
         total_pages = (total_players + per_page - 1) // per_page
 
@@ -142,9 +142,6 @@ def players():
     except mysql.connector.Error as err:
         return str(err), 500
 
-@app.route('/player')
-def player_detail():
-    return render_template('player.html')
     
 @app.route('/api/suggestions')
 def suggestions():
